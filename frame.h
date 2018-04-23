@@ -1,13 +1,21 @@
 #include <vector>
 #include <mutex>
 #include <condition_variable>
-
+#include <queue>
 struct f_pipe {
     int tar;
     int poc;
     std::condition_variable &cv;
     f_pipe(int _tar, int _poc, std::condition_variable &_cv)
         :tar(_tar), poc(_poc), cv(_cv) {}
+};
+
+struct comp
+{
+    bool operator() (const f_pipe &a, const f_pipe &b) const
+    {
+        return a.tar > b.tar;
+    }
 };
 
 class frame {
@@ -18,7 +26,8 @@ class frame {
     int depsize;
     std::mutex _wait;
     std::condition_variable _goCv;
-    std::vector<f_pipe> waiting;
+    std::priority_queue<f_pipe, std::vector<f_pipe>, comp> waiting;
+
 
     frame();
 

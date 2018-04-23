@@ -11,7 +11,7 @@ INCLUDE :=
 CFLAGS  := -g $(DEFINES) $(INCLUDE) -std=c++11 -lpthread
 CXXFLAGS:= $(CFLAGS)
 
-#下面的基本上不需要做任何改动了
+#no need to change
 .PHONY : everything objs clean veryclean rebuild
 
 everything : $(TARGET)
@@ -28,6 +28,6 @@ clean :
 
 veryclean : clean
 	rm -fr $(TARGET)
-#这里是实际完成编译的命令
+#compile command
 $(TARGET) : $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS) $(LIBS) $(CXXFLAGS) 

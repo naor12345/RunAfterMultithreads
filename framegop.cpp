@@ -14,7 +14,22 @@ void FrameGop::process0(int idx){
         int dval = Random(5,10);
         if(f.val + dval > 300) dval = MAX_VAL-f.val;
         f.val += dval;
-        for()
+        while(!f.waiting.empty() && f.waiting.top().tar <= f.val)
+        {
+            if(f.val < MAX_VAL && f.waiting.top().tar + SRT_ITV <= f.val)
+            {
+                f.waiting.top().cv.notify_one();
+                f.waiting.pop();
+                continue;
+            }
+            else if(f.val >= MAX_VAL && f.waiting.top().tar <= f.val)
+            {
+                f.waiting.top().cv.notify_one();
+                f.waiting.pop();
+                continue;
+            }
+            
+        }
 
         //sleep
         sleep(2);
@@ -32,7 +47,7 @@ void FrameGop::process1(int idx){
 
         //check        
         int xval = frames[fmeToIdx[f.dep[0]]].val;
-        if(f.val+dval+STP_ITV>xval){
+        if(f.val+dval+STP_ITV<xval){
             f.val += dval;
         }
         else{            
