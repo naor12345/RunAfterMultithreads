@@ -5,11 +5,14 @@
 
 class FrameGop {
   public:
-    vector<frame> frames;
-    threadpool thp;
-    map<int, int> fmeToIdx;
+    std::vector<frame> frames{17, frame()};
+    std::threadpool thp{17};
+    std::map<int, int> fmeToIdx;
     FrameGop();
     ~FrameGop();
-    void process();
+    void process(int i);
+    void process0(int i);
+    void process1(int i);
+    void process2(int i);
     void init() ;
 };

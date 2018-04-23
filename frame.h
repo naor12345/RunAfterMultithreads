@@ -1,22 +1,32 @@
 #include <vector>
 #include <mutex>
 #include <condition_variable>
-using namespace std;
+
+struct f_pipe {
+    int tar;
+    int poc;
+    std::condition_variable &cv;
+    f_pipe(int _tar, int _poc, std::condition_variable &_cv)
+        :tar(_tar), poc(_poc), cv(_cv) {}
+};
 
 class frame {
   public:
     int poc;
     int val;
-    vector<int> dep;
+    std::vector<int> dep;
     int depsize;
-    mutex _wait;
-    condition_variable _goCv;
+    std::mutex _wait;
+    std::condition_variable _goCv;
+    std::vector<f_pipe> waiting;
 
     frame();
 
-    frame::frame(const frame &f);
+    void set(int idx, int a, int b, int v = 0);
+
+    frame(const frame &f);
 
     frame(int i, int v);
 
-    frame::frame(int i, int v, int a, int b); 
+    frame(int i, int v, int a, int b); 
 };
