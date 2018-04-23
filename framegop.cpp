@@ -1,5 +1,6 @@
 #include "framegop.h"
 #include "utility.h"
+#include <iostream>
 
 FrameGop::FrameGop(){}
 
@@ -16,24 +17,13 @@ void FrameGop::process0(int idx){
         f.val += dval;
         while(!f.waiting.empty() && f.waiting.top().tar <= f.val)
         {
-            if(f.val < MAX_VAL && f.waiting.top().tar + SRT_ITV <= f.val)
-            {
-                f.waiting.top().cv.notify_one();
-                f.waiting.pop();
-                continue;
-            }
-            else if(f.val >= MAX_VAL && f.waiting.top().tar <= f.val)
-            {
-                f.waiting.top().cv.notify_one();
-                f.waiting.pop();
-                continue;
-            }
-            
+            f.waiting.top().cv.notify_one();
+            f.waiting.pop();
         }
-
         //sleep
         sleep(2);
     }
+    std::cout<<f.poc<<" finished"<<std::endl;
 }
 
 void FrameGop::process1(int idx){
@@ -47,6 +37,7 @@ void FrameGop::process1(int idx){
 
         //check        
         int xval = frames[fmeToIdx[f.dep[0]]].val;
+        int ftar = f.val + dval
         if(f.val+dval+STP_ITV<xval){
             f.val += dval;
         }

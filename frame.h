@@ -3,8 +3,8 @@
 #include <condition_variable>
 #include <queue>
 struct f_pipe {
-    int tar;
-    int poc;
+    int tar;  // target, greater than target -> continue, (0, MAX_VAL]
+    int poc;  // poc of the frame
     std::condition_variable &cv;
     f_pipe(int _tar, int _poc, std::condition_variable &_cv)
         :tar(_tar), poc(_poc), cv(_cv) {}
