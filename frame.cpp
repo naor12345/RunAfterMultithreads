@@ -12,7 +12,7 @@ frame::frame(const frame &f) {
     std::copy(f.dep.begin(), f.dep.end(), dep.begin());
 }
 
-void frame::pushWaiting(int tar, int poc, std::condition_variable &fcv){
+void frame::pushWaiting(int tar, int poc, std::condition_variable *fcv){
     std::lock_guard<std::mutex> lock{mtx_push};
     waiting.emplace(tar, poc, fcv);
 }

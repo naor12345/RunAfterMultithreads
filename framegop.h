@@ -15,4 +15,5 @@ class FrameGop {
     void process1(int i);
     void process2(int i);
     void init() ;
+    void processparallel();
 };

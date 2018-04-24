@@ -8,7 +8,7 @@ LIBS    :=
 LDFLAGS :=
 DEFINES :=
 INCLUDE :=
-CFLAGS  := -g $(DEFINES) $(INCLUDE) -std=c++11 -lpthread
+CFLAGS  := -g3 $(DEFINES) $(INCLUDE) -std=c++11 -lpthread
 CXXFLAGS:= $(CFLAGS)
 
 #no need to change

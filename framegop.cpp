@@ -2,23 +2,67 @@
 #include "utility.h"
 #include <iostream>
 
-FrameGop::FrameGop(){}
+FrameGop::FrameGop() {}
 
-FrameGop::~FrameGop(){}
+FrameGop::~FrameGop() {}
 
-void FrameGop::process0(int idx){
+void FrameGop::processparallel(){
+    for(int i = 0; i<frames.size(); i++){
+        thp.commit(std::bind(&FrameGop::process, this, i));
+    }
+    thp.drainTask();
+    std::cout<<"threadpool return"<<std::endl;
+}
+
+void FrameGop::process0(int idx) {
     // vector<frames> idx
     frame &f = frames[idx];
-    while(f.val < 300)
-    {
+    while(f.val < MAX_VAL) {
         //get the self-plus number
         int dval = Random(5,10);
-        if(f.val + dval > 300) dval = MAX_VAL-f.val;
+        if(f.val + dval > MAX_VAL) dval = MAX_VAL-f.val;
         f.val += dval;
+#if DEBUG
+        std::cout<<f.poc<<" val: "<<f.val<<std::endl;
+#endif        
         //let go
-        while(!f.waiting.empty() && f.waiting.top().tar <= f.val)
-        {
-            f.waiting.top().cv.notify_one();
+        while(!f.waiting.empty() && f.waiting.top().tar <= f.val) {
+            f.waiting.top().cv->notify_one();
+            f.waiting.pop();            
+        }
+        //sleep
+        sleep(2);
+    }
+    std::cout<<f.poc<<" finished"<<std::endl;
+}
+
+void FrameGop::process1(int idx) {
+    // vector<frames> idx
+    frame &f = frames[idx];
+    while(f.val < MAX_VAL) {
+        //get the self-plus number
+        int dval = Random(5,10);
+        if(f.val + dval > MAX_VAL) dval = MAX_VAL-f.val;
+
+        //check
+        int xval = frames[fmeToIdx[f.dep[0]]].val;
+        int ftar = f.val + dval + STP_ITV;
+
+        if(ftar >= xval) {
+            // push self to frames[fmeToIdx[f.dep[0]]].waiting
+            // need to add lock to "push" action
+            int wtar = f.val + dval + SRT_ITV;
+            frames[fmeToIdx[f.dep[0]]].pushWaiting(std::max(wtar, MAX_VAL), f.poc, &(f._goCv));
+            std::unique_lock<std::mutex> lock{f._wait};
+            f._goCv.wait(lock);
+        }
+        f.val += dval;
+#if DEBUG
+        std::cout<<f.poc<<" val: "<<f.val<<std::endl;
+#endif 
+        //let go
+        while(!f.waiting.empty() && f.waiting.top().tar <= f.val) {
+            f.waiting.top().cv->notify_one();
             f.waiting.pop();
         }
         //sleep
@@ -27,81 +71,55 @@ void FrameGop::process0(int idx){
     std::cout<<f.poc<<" finished"<<std::endl;
 }
 
-void FrameGop::process1(int idx){
-    // vector<frames> idx
+void FrameGop::process2(int idx) {
+     // vector<frames> idx
     frame &f = frames[idx];
-    while(f.val < 300)
-    {
+    while(f.val < MAX_VAL) {
         //get the self-plus number
         int dval = Random(5,10);
-        if(f.val + dval > 300) dval = MAX_VAL-f.val;
+        if(f.val + dval > MAX_VAL) dval = MAX_VAL-f.val;
 
-        //check        
-        int xval = frames[fmeToIdx[f.dep[0]]].val;
+        //check
+        int xval1 = frames[fmeToIdx[f.dep[0]]].val;
+        int xval2 = frames[fmeToIdx[f.dep[1]]].val;
+        int xidx = xval1 > xval2 ? 1 : 0;
+        int xval = frames[fmeToIdx[f.dep[xidx]]].val;
         int ftar = f.val + dval + STP_ITV;
-        if(ftar < xval){
-            f.val += dval;
-        }
-        else{    
+
+        if(ftar >= xval) {
             // push self to frames[fmeToIdx[f.dep[0]]].waiting
             // need to add lock to "push" action
             int wtar = f.val + dval + SRT_ITV;
-            frames[fmeToIdx[f.dep[0]]].pushWaiting(std::max(wtar, MAX_VAL), f.poc, f._goCv);
+            frames[fmeToIdx[f.dep[xidx]]].pushWaiting(std::max(wtar, MAX_VAL), f.poc, &(f._goCv));
             std::unique_lock<std::mutex> lock{f._wait};
             f._goCv.wait(lock);
         }
-        
+        f.val += dval;
+#if DEBUG
+        std::cout<<f.poc<<" val: "<<f.val<<std::endl;
+#endif 
         //let go
-
-
-        
-        
-        
-        
-        //sleep
-        sleep(2);
-    }
-    std::cout<<
-}
-
-void FrameGop::process2(int idx){
-// vector<frames> idx
-    frame &f = frames[idx];
-    while(f.val < 300)
-    {
-        //get the self-plus number
-        int dval = Random(5,10);
-        if(f.val + dval > 300) dval = MAX_VAL-f.val;
-
-        //check
-        if(f.depsize == 0)
-            f.val += dval;
-        else if(f.depsize == 1){
-            int xval = frames[fmeToIdx[f.dep[0]]].val;
-            
+        while(!f.waiting.empty() && f.waiting.top().tar <= f.val) {
+            f.waiting.top().cv->notify_one();
+            f.waiting.pop();
         }
-        
-        
-        
         //sleep
         sleep(2);
     }
+    std::cout<<f.poc<<" finished"<<std::endl;
 }
 
-void FrameGop::process(int idx){
-    if(frames[idx].depsize == 0)
-    {
+void FrameGop::process(int idx) {
+    if(frames[idx].depsize == 0) {
         process0(idx);
-    }
-    else if(frames[idx].depsize == 1){
+    } else if(frames[idx].depsize == 1) {
         process1(idx);
-    }
-    else {
+    } else {
         process2(idx);
     }
 }
 
-void FrameGop::init(){ 
+void FrameGop::init() {
     frames[0].set(0, -1, -1);
     frames[1].set(16, 0, -1);
     frames[2].set(8, 0, 16);
