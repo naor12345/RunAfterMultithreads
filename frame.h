@@ -27,7 +27,9 @@ class frame {
     std::mutex _wait;
     std::condition_variable _goCv;
     std::priority_queue<f_pipe, std::vector<f_pipe>, comp> waiting;
-
+    std::mutex mtx_push;
+    
+    void pushWaiting(int tar, int poc, std::condition_variable &fcv);
 
     frame();
 

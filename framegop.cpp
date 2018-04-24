@@ -15,6 +15,7 @@ void FrameGop::process0(int idx){
         int dval = Random(5,10);
         if(f.val + dval > 300) dval = MAX_VAL-f.val;
         f.val += dval;
+        //let go
         while(!f.waiting.empty() && f.waiting.top().tar <= f.val)
         {
             f.waiting.top().cv.notify_one();
@@ -37,17 +38,20 @@ void FrameGop::process1(int idx){
 
         //check        
         int xval = frames[fmeToIdx[f.dep[0]]].val;
-        int ftar = f.val + dval
-        if(f.val+dval+STP_ITV<xval){
+        int ftar = f.val + dval + STP_ITV;
+        if(ftar < xval){
             f.val += dval;
         }
-        else{            
+        else{    
+            // push self to frames[fmeToIdx[f.dep[0]]].waiting
+            // need to add lock to "push" action
+            int wtar = f.val + dval + SRT_ITV;
+            frames[fmeToIdx[f.dep[0]]].pushWaiting(std::max(wtar, MAX_VAL), f.poc, f._goCv);
             std::unique_lock<std::mutex> lock{f._wait};
-            f._goCv.wait(lock, [this]{
-                
-            });
+            f._goCv.wait(lock);
         }
-
+        
+        //let go
 
 
         
@@ -57,6 +61,7 @@ void FrameGop::process1(int idx){
         //sleep
         sleep(2);
     }
+    std::cout<<
 }
 
 void FrameGop::process2(int idx){
