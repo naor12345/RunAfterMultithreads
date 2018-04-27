@@ -3,6 +3,8 @@
 #include <condition_variable>
 #include <queue>
 #include <utility>
+#include "utility.h"
+
 struct f_pipe {
     int tar;  // target, greater than target -> continue, (0, MAX_VAL]
     int poc;  // poc of the frame
@@ -23,6 +25,7 @@ class frame {
   public:
     int poc;
     int val;
+	bool isFinish;
     std::vector<int> dep;
     int depsize;
     std::mutex _wait;

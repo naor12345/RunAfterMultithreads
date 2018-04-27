@@ -31,8 +31,17 @@ void FrameGop::process0(int idx) {
             f.waiting.pop();            
         }
         //sleep
-        sleep(2);
+        ssleep(WAIT_SECOND);
     }
+
+	//set finish
+	f.isFinish = true;
+	//drain the waiting queue
+	while (!f.waiting.empty()) {
+		f.waiting.top().cv->notify_one();
+		f.waiting.pop();
+	}
+
     std::cout<<f.poc<<" finished"<<std::endl;
 }
 
@@ -44,18 +53,19 @@ void FrameGop::process1(int idx) {
         int dval = Random(5,10);
         if(f.val + dval > MAX_VAL) dval = MAX_VAL-f.val;
 
-        //check
-        int xval = frames[fmeToIdx[f.dep[0]]].val;
-        int ftar = f.val + dval + STP_ITV;
+		//check
+		int xval = frames[fmeToIdx[f.dep[0]]].val;
+		int ftar = f.val + dval + STP_ITV;
 
-        if(ftar >= xval) {
-            // push self to frames[fmeToIdx[f.dep[0]]].waiting
-            // need to add lock to "push" action
-            int wtar = f.val + dval + SRT_ITV;
-            frames[fmeToIdx[f.dep[0]]].pushWaiting(std::max(wtar, MAX_VAL), f.poc, &(f._goCv));
-            std::unique_lock<std::mutex> lock{f._wait};
-            f._goCv.wait(lock);
-        }
+		if (!frames[fmeToIdx[f.dep[0]]].isFinish && ftar >= xval) {
+			// push self to frames[fmeToIdx[f.dep[0]]].waiting
+			// need to add lock to "push" action
+			int wtar = f.val + dval + SRT_ITV;
+			frames[fmeToIdx[f.dep[0]]].pushWaiting((std::min)(wtar, MAX_VAL), f.poc, &(f._goCv));
+			std::unique_lock<std::mutex> lock{ f._wait };
+			f._goCv.wait(lock);
+
+		}        
         f.val += dval;
 #if DEBUG
         std::cout<<f.poc<<" val: "<<f.val<<std::endl;
@@ -66,8 +76,17 @@ void FrameGop::process1(int idx) {
             f.waiting.pop();
         }
         //sleep
-        sleep(2);
+        ssleep(WAIT_SECOND);
     }
+
+	//set finish
+	f.isFinish = true;
+	//drain the waiting queue
+	while (!f.waiting.empty()) {
+		f.waiting.top().cv->notify_one();
+		f.waiting.pop();
+	}
+
     std::cout<<f.poc<<" finished"<<std::endl;
 }
 
@@ -86,11 +105,11 @@ void FrameGop::process2(int idx) {
         int xval = frames[fmeToIdx[f.dep[xidx]]].val;
         int ftar = f.val + dval + STP_ITV;
 
-        if(ftar >= xval) {
+        if(!frames[fmeToIdx[f.dep[xidx]]].isFinish && ftar >= xval) {
             // push self to frames[fmeToIdx[f.dep[0]]].waiting
             // need to add lock to "push" action
             int wtar = f.val + dval + SRT_ITV;
-            frames[fmeToIdx[f.dep[xidx]]].pushWaiting(std::max(wtar, MAX_VAL), f.poc, &(f._goCv));
+            frames[fmeToIdx[f.dep[xidx]]].pushWaiting((std::min)(wtar, MAX_VAL), f.poc, &(f._goCv));
             std::unique_lock<std::mutex> lock{f._wait};
             f._goCv.wait(lock);
         }
@@ -104,8 +123,17 @@ void FrameGop::process2(int idx) {
             f.waiting.pop();
         }
         //sleep
-        sleep(2);
+        ssleep(WAIT_SECOND);
     }
+
+	//set finish
+	f.isFinish = true;
+	//drain the waiting queue
+	while (!f.waiting.empty()) {
+		f.waiting.top().cv->notify_one();
+		f.waiting.pop();
+	}
+
     std::cout<<f.poc<<" finished"<<std::endl;
 }
 
