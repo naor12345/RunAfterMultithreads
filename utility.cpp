@@ -13,6 +13,7 @@ void ssleep(int a){
 
 int Random(int m, int n)
 {
+	srand((int)time(NULL));
     int pos, dis;
     if(m == n)
     {

@@ -19,7 +19,7 @@ void FrameGop::process0(int idx) {
     frame &f = frames[idx];
     while(f.val < MAX_VAL) {
         //get the self-plus number
-        int dval = Random(5,10);
+        int dval = Random(1,10);
         if(f.val + dval > MAX_VAL) dval = MAX_VAL-f.val;
         f.val += dval;
 #if DEBUG
@@ -50,7 +50,7 @@ void FrameGop::process1(int idx) {
     frame &f = frames[idx];
     while(f.val < MAX_VAL) {
         //get the self-plus number
-        int dval = Random(5,10);
+        int dval = Random(1,10);
         if(f.val + dval > MAX_VAL) dval = MAX_VAL-f.val;
 
 		//check
@@ -95,7 +95,7 @@ void FrameGop::process2(int idx) {
     frame &f = frames[idx];
     while(f.val < MAX_VAL) {
         //get the self-plus number
-        int dval = Random(5,10);
+        int dval = Random(1,10);
         if(f.val + dval > MAX_VAL) dval = MAX_VAL-f.val;
 
         //check

@@ -7,8 +7,7 @@
 #include <time.h> 
 
 
-int main() {
-    srand((int)time(NULL));
+int main() {    
     FrameGop framegop;
     framegop.init();
     framegop.processparallel();
