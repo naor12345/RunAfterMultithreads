@@ -1,7 +1,19 @@
 #include "utility.h"
 
+// a: second
+void ssleep(int a){
+#if linux
+	sleep(a);
+#endif
+
+#if WIN32
+	Sleep(a * 1000);
+#endif
+}
+
 int Random(int m, int n)
 {
+	srand((int)time(NULL));
     int pos, dis;
     if(m == n)
     {
